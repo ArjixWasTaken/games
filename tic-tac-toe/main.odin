@@ -53,10 +53,22 @@ init_cells :: proc(layout: BoardLayout) {
 draw_cells :: proc() {
     mouse_pos := rl.GetMousePosition()
 
+    has_set_cursor: bool = false
+
     for cell, i in CELLS {
         color := rl.Color{240, 240, 240, 255}
-        if cell.player == .None && rl.CheckCollisionCircleRec(mouse_pos, f32(10), cell.rect) {
-            color = rl.Color{220, 235, 255, 255}
+
+        is_hovered := rl.CheckCollisionCircleRec(mouse_pos, f32(1), cell.rect)
+        if is_hovered {
+            has_set_cursor = true
+            #partial switch cell.player {
+                case .None: rl.SetMouseCursor(.POINTING_HAND)
+                case: rl.SetMouseCursor(.NOT_ALLOWED)
+            }
+
+            if cell.player == .None && is_hovered {
+                color = rl.Color{220, 235, 255, 255}
+            }
         }
 
         rl.DrawRectangleRec(cell.rect, color)
@@ -70,6 +82,10 @@ draw_cells :: proc() {
             20,
             rl.GRAY,
         )
+    }
+
+    if !has_set_cursor {
+        rl.SetMouseCursor(.DEFAULT)
     }
 }
 
@@ -102,8 +118,9 @@ main :: proc() {
 
             if rl.IsMouseButtonPressed(.LEFT) {
                 mouse_pos := rl.GetMousePosition()
-                for cell in CELLS {
-                    if rl.CheckCollisionCircleRec(mouse_pos, f32(10), cell.rect) {
+                for &cell in CELLS {
+                    if rl.CheckCollisionCircleRec(mouse_pos, f32(1), cell.rect) {
+                        cell.player = .X
                         fmt.printfln("Clicked cell %d", cell.index)
                     }
                 }
