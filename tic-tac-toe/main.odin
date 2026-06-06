@@ -1,5 +1,6 @@
 package tictactoe
 
+import "core:fmt"
 import "core:c"
 import rl "vendor:raylib"
 
@@ -8,6 +9,69 @@ GAME_W :: 800
 GAME_H :: 600
 
 RENDER_TARGET: rl.RenderTexture2D
+CELLS: [9]Cell
+
+make_layout :: proc() -> BoardLayout {
+    cell_size: f32 = 150.0
+    gap: f32 = 10.0
+
+    board_w := (cell_size + gap) * 3
+    board_h := (cell_size + gap) * 3
+
+    offset_x := (f32(GAME_W) - board_w) / 2.0
+    offset_y := (f32(GAME_H) - board_h) / 2.0 + 50.0
+
+    return BoardLayout{
+        cell_size,
+        gap,
+        offset_x,
+        offset_y,
+    }
+}
+
+init_cells :: proc(layout: BoardLayout) {
+    for i: i32 = 0; i < len(CELLS); i += 1 {
+        row := i / 3
+        col := i % 3
+
+        x := layout.offset_x + f32(col) * (layout.cell_size + layout.gap)
+        y := layout.offset_y + f32(row) * (layout.cell_size + layout.gap)
+
+        CELLS[i] = Cell{
+            player = .None,
+            index = i,
+            rect = rl.Rectangle{
+                x,
+                y,
+                layout.cell_size,
+                layout.cell_size,
+            },
+        }
+    }
+}
+
+draw_cells :: proc() {
+    mouse_pos := rl.GetMousePosition()
+
+    for cell, i in CELLS {
+        color := rl.Color{240, 240, 240, 255}
+        if cell.player == .None && rl.CheckCollisionCircleRec(mouse_pos, f32(10), cell.rect) {
+            color = rl.Color{220, 235, 255, 255}
+        }
+
+        rl.DrawRectangleRec(cell.rect, color)
+        rl.DrawRectangleLinesEx(cell.rect, 2, rl.BLACK)
+
+        text := rl.TextFormat("%d", i)
+        rl.DrawText(
+            text,
+            i32(cell.rect.x + 5),
+            i32(cell.rect.y + 5),
+            20,
+            rl.GRAY,
+        )
+    }
+}
 
 main :: proc() {
     rl.SetConfigFlags({.WINDOW_RESIZABLE})
@@ -16,28 +80,34 @@ main :: proc() {
     RENDER_TARGET = rl.LoadRenderTexture(GAME_W, GAME_H)
     defer rl.UnloadRenderTexture(RENDER_TARGET)
 
+    layout := make_layout()
+    init_cells(layout)
+
     for !rl.WindowShouldClose() {
         BeginDrawing()
 
-        CELL :: 20
+            font_size: i32 = 40
+            title := cstring(GAME_TITLE)
+            title_size := rl.MeasureText(title, font_size)
 
-        // vertical lines
-        for x: i32 = 0; x <= GAME_W; x += CELL {
-            col := rl.Color{200, 200, 200, 255}
-            if x == GAME_W / 2 {
-                col = rl.RED
-            }
-            rl.DrawLine(x, 0, x, GAME_H, col)
-        }
+            rl.DrawText(
+                title,
+                i32((f32(GAME_W) - f32(title_size)) / 2.0),
+                i32(layout.offset_y - 60),
+                font_size,
+                rl.BLACK,
+            )
 
-        // horizontal lines
-        for y: i32 = 0; y <= GAME_H; y += CELL {
-            col := rl.Color{200, 200, 200, 255}
-            if y == GAME_H / 2 {
-                col = rl.BLUE
+            draw_cells()
+
+            if rl.IsMouseButtonPressed(.LEFT) {
+                mouse_pos := rl.GetMousePosition()
+                for cell in CELLS {
+                    if rl.CheckCollisionCircleRec(mouse_pos, f32(10), cell.rect) {
+                        fmt.printfln("Clicked cell %d", cell.index)
+                    }
+                }
             }
-            rl.DrawLine(0, y, GAME_W, y, col)
-        }
 
         EndDrawing()
     }
