@@ -11,7 +11,7 @@ EndDrawing :: proc() {
     rl.EndTextureMode()
 
     rl.BeginDrawing()
-    rl.ClearBackground(rl.BLACK)
+    rl.ClearBackground(rl.GRAY)
 
     scale := min(
         f32(rl.GetScreenWidth()) / GAME_W,
@@ -40,4 +40,25 @@ EndDrawing :: proc() {
     )
 
     rl.EndDrawing()
+}
+
+GetMousePosition :: proc() -> rl.Vector2 {
+    mouse := rl.GetMousePosition()
+
+    scale := min(
+        f32(rl.GetScreenWidth()) / GAME_W,
+        f32(rl.GetScreenHeight()) / GAME_H,
+    )
+
+    dst_w := f32(GAME_W) * scale
+    dst_h := f32(GAME_H) * scale
+
+    offset_x := (f32(rl.GetScreenWidth()) - dst_w) / 2.0
+    offset_y := (f32(rl.GetScreenHeight()) - dst_h) / 2.0
+
+    // convert screen → game space
+    return rl.Vector2{
+        (mouse.x - offset_x) / scale,
+        (mouse.y - offset_y) / scale,
+    }
 }

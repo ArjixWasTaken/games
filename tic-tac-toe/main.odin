@@ -51,7 +51,7 @@ init_cells :: proc(layout: BoardLayout) {
 }
 
 draw_cells :: proc() {
-    mouse_pos := rl.GetMousePosition()
+    mouse_pos := GetMousePosition()
 
     has_set_cursor: bool = false
 
@@ -117,7 +117,7 @@ main :: proc() {
             draw_cells()
 
             if rl.IsMouseButtonPressed(.LEFT) {
-                mouse_pos := rl.GetMousePosition()
+                mouse_pos := GetMousePosition()
                 for &cell in CELLS {
                     if rl.CheckCollisionCircleRec(mouse_pos, f32(1), cell.rect) {
                         cell.player = .X
