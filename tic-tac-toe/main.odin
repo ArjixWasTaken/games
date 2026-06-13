@@ -93,6 +93,9 @@ main :: proc() {
     rl.SetConfigFlags({.WINDOW_RESIZABLE})
     rl.InitWindow(GAME_W, GAME_H, GAME_TITLE)
 
+    rl.SetTargetFPS(60)
+    rl.SetExitKey(nil)
+
     RENDER_TARGET = rl.LoadRenderTexture(GAME_W, GAME_H)
     defer rl.UnloadRenderTexture(RENDER_TARGET)
 
